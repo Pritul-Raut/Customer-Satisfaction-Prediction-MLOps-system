@@ -1,16 +1,34 @@
 import logging
-
+from sklearn.base import RegressorMixin
 import pandas as pd
 from zenml import step
+from src.evaluation import MSE,RMSE,R2
+from typing import Tuple,Annotated
+
 @step
-def evaluate_model(df:pd.DataFrame)->None:
+def evaluate_model(model:RegressorMixin,
+                   X_test:pd.DataFrame,
+                   y_test:pd.Series,)->Tuple[Annotated[float,"r2_score"],Annotated[float,"rmse"],]:
     """ evaluate The Model On the ingested data 
     
     Args: 
     df: the ingested data
     
         """
+    try:  
+        predication = model.predict(X_test)
+        # mse_class= MSE()
+        # mse = mse_class.calculate_scores(y_test,predication)
         
-    pass
+        r2_class =R2()
+        r2_score=r2_class.calculate_scores(y_test,predication)
+        
+        rmse_class=RMSE()
+        rmse = rmse_class.calculate_scores(y_test,predication)
+        
+        return r2_score,rmse
+    except Exception as e:
+        logging.error("Error in evaluating the model : {e} ")
+        raise e
 
 
